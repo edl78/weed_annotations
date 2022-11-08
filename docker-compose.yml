@@ -1,0 +1,68 @@
+version: '3.4'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  mongodb:
+    env_file:
+      - env.list
+    restart: unless-stopped
+    image: bitnami/mongodb:latest
+    container_name: mongodb
+    networks:
+      - app-tier
+    volumes:
+      - /data/db:/bitnami/mongodb
+    environment:
+      - MONGODB_DATABASE=annotations
+      - MONGODB_PORT_NUMBER=27018
+    ports:
+      - 27018:27018
+
+  mongo-express:
+    env_file:
+      - env.list
+    restart: unless-stopped  
+    image: mongo-express
+    container_name: mongo-express
+    networks:
+      - app-tier
+    ports:
+        - 8081:8081
+    environment:
+        ME_CONFIG_MONGODB_SERVER: mongodb
+        ME_CONFIG_MONGODB_PORT: 27018
+    depends_on:
+      - "mongodb"
+
+  stats:
+    env_file:
+      - env.list
+    restart: unless-stopped
+    image: stats:v1
+    container_name: stats
+    networks:
+      - app-tier
+    ports:
+      - 8050:8050
+    volumes:
+      - "./code:/code"
+    depends_on:
+      - "mongodb" 
+    entrypoint: ["python3", "/code/app.py"]
+
+  #the analytics service can run either in this
+  #docker-compose or stand-alone
+  #analytics:
+  #  image: analytics:v1
+  #  container_name: analytics
+  #  networks:
+  #    - app-tier
+  #  ports:
+  #    - 5000:5000
+  #  volumes:
+  #    - "./code:/code"
+  #  entrypoint: ["python3", "/code/app.py"]
+    
