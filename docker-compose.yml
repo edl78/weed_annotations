@@ -14,12 +14,12 @@ services:
     networks:
       - app-tier
     volumes:
-      - /data/db:/bitnami/mongodb
+      - ${MONGODB_VOLUME}:/bitnami/mongodb
     environment:
       - MONGODB_DATABASE=annotations
-      - MONGODB_PORT_NUMBER=27018
+      - MONGODB_PORT_NUMBER=${MONGODB_PORT_NUMBER}
     ports:
-      - 27018:27018
+      - ${MONGODB_PORT_NUMBER}:${MONGODB_PORT_NUMBER}
 
   mongo-express:
     env_file:
@@ -32,8 +32,7 @@ services:
     ports:
         - 8081:8081
     environment:
-        ME_CONFIG_MONGODB_SERVER: mongodb
-        ME_CONFIG_MONGODB_PORT: 27018
+        ME_CONFIG_MONGODB_SERVER: mongodb        
     depends_on:
       - "mongodb"
 
@@ -46,7 +45,7 @@ services:
     networks:
       - app-tier
     ports:
-      - 8050:8050
+      - ${STATS_PORT_NUMBER}:${STATS_PORT_NUMBER}
     volumes:
       - "./code:/code"
     depends_on:

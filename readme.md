@@ -15,7 +15,10 @@
 - Run `sh build_all.sh` to build all images required
 
 ### Run
-- First fill in your usernames and passwords in the env.list file. Do not check this in.
+- Make a folder for mongodb to store the database in and fill in the path in the env.list file. Set full permissions on the folder.
+- Fill in your usernames and passwords in the env.list file. Do not check this in.
+- Fill in all other environment variables needed.
+
 - Run `docker-compose up -d` to start the application and `docker-compose down` to end
 
 ### Access 
