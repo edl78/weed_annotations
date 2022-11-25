@@ -5,7 +5,7 @@ import os
 
 class Stats():
     def __init__(self):
-        self.db_client = MongoClient(host='mongodb', port=27018, 
+        self.db_client = MongoClient(host='mongodb', port=int(os.environ['MONGODB_PORT_NUMBER']), 
                                     username=os.environ['MONGODB_USERNAME'], password=os.environ['MONGODB_PASSWORD'],
                                     connect=True, authSource="annotations")  
 

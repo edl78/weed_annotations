@@ -24,13 +24,16 @@ class Annotations():
             self.db_collection_annotation_data = self.db.annotation_data
             self.db_collection_task_meta = self.db.meta
 
+    def get_num_tasks_internal(self):
+        return len(self.tasks)
+
     def get_tasks(self):
         endpoint = 'tasks'
         #get first list of tasks
         r = requests.get(self.cvat+endpoint, cookies=self.cookies)
         if(r.status_code == 200):
             #tasks is a paginated list of tasks
-            task_list = r.json()
+            task_list = r.json()            
             for task in task_list['results']:
                 if(task['status'] == 'completed'):
                     self.tasks[task['name']] = task
@@ -46,7 +49,7 @@ class Annotations():
                 else:
                     print(r.reason)                    
         else:
-            print(r.reason)
+            print(r.reason, flush=True)
 
 
     def login(self):
@@ -215,8 +218,11 @@ class Annotations():
         #implement semi intelligent update of annotations
         #add missing or updated annotations, in case of update
         #remove old and insert new.
+        print('update mongodb with cvat annotations', flush=True)
         self.tasks.clear()
+        print('get cvat tasks', flush=True)
         self.get_tasks()
+        print('get mongodb tasks', flush=True)
         db_tasks = self.get_db_tasks()
         for task_name in self.tasks.keys():
             print(task_name + ' start handling')

@@ -33,9 +33,8 @@ annotations = Annotations(username=os.environ['CVAT_USERNAME'],
                             password=os.environ['CVAT_PASSWORD'],
                             cvat_base_url=os.environ['CVAT_BASE_URL'])
 
-analytics_client = AnalyticsClient(host='http://192.168.1.83', port=5001)
-#analytics_client = AnalyticsClient(host='http://192.168.68.134', port=5000)
-#analytics_client = AnalyticsClient(host='analytics', port=5000)
+if(os.environ['ANALYTICS_HOST'] != None):
+    analytics_client = AnalyticsClient(host=os.environ['ANALYTICS_HOST'], port=int(os.environ['ANALYTICS_PORT']))
 
 update_annotations_clicks = 0
 calc_tsne_clicks = 0
@@ -68,7 +67,7 @@ def download_tsne_img(task_name):
     try:
         analytics_client.download_img(task_name, plot_img_name, tsne_path)
     except:
-        print('Error getting tsne_plot with images fram Analytics service')
+        print('Error getting tsne_plot with images from Analytics service')
     
 
 def read_tsne_img(file_path):
@@ -90,11 +89,10 @@ def update_layout(n_clicks, div_children):
         update_annotations_clicks = n_clicks
         return div_children
     else:
-        update_annotations_clicks = n_clicks
+        update_annotations_clicks = n_clicks        
         annotations.update()
         div_children = []
             
-
         all_object_classes = stats.count_num_object_classes()
         df_all_objects = pd.DataFrame(all_object_classes)    
 
@@ -119,38 +117,49 @@ def update_layout(n_clicks, div_children):
                 },
                 figure=px.bar(df_annotation_types, x="_id", y="count", barmode="group"))]
             )
-        )                
+        )            
 
         res_dict = {}
         task_list = stats.list_tasks()
+        
         for task in task_list:
             task_name = task['_id']
-            download_tsne_img(task_name)
+            if(os.environ['ANALYTICS_HOST']):
+                download_tsne_img(task_name)
             object_classes = stats.get_num_object_classes_filtered_on_task(str(task_name))         
             res_dict[task_name] = object_classes
 
         #add distribution per task
         for key in res_dict:
-            if(res_dict[key] != []):                
-                file_path_tsne = '/tsne/'+key.replace(' ', '_')+'/tsne_plot.png'
-                file_path_tsne_img = '/tsne/'+key.replace(' ', '_')+'/tsne_plot_imgs.png'                
-                img = read_tsne_img(file_path_tsne)
-                img2 = read_tsne_img(file_path_tsne_img)
+            if(res_dict[key] != []):
+                if(os.environ['ANALYTICS_HOST']):
+                    file_path_tsne = '/tsne/'+key.replace(' ', '_')+'/tsne_plot.png'
+                    file_path_tsne_img = '/tsne/'+key.replace(' ', '_')+'/tsne_plot_imgs.png'                
+                    img = read_tsne_img(file_path_tsne)
+                    img2 = read_tsne_img(file_path_tsne_img)
+                    fig = px.imshow(img)
+                    fig2 = px.imshow(img2)
 
-                fig = px.imshow(img)
-                fig2 = px.imshow(img2)
                 div_children.append(html.Div(['CVAT task name: ' + key]))
-                div_children.append(html.Div([                                                                                       
-                        dcc.Graph(id={'type': 'dynamic-graph','index' : key}, 
-                                figure=px.bar(pd.DataFrame(res_dict[key]), x="_id", y="count", barmode="group"),
-                                style={"display": "inline-block"}),
-                        dcc.Graph(id=key.replace(' ','_'), 
-                                figure=fig, 
-                                style={"display": "inline-block"}),
-                        dcc.Graph(id=key.replace(' ','_'), 
-                                figure=fig2, 
-                                style={"display": "inline-block"})
-                                ]))
+                if(os.environ['ANALYTICS_HOST']):
+                    div_children.append(html.Div([                                                                                       
+                            dcc.Graph(id={'type': 'dynamic-graph','index' : key}, 
+                                    figure=px.bar(pd.DataFrame(res_dict[key]), x="_id", y="count", barmode="group"),
+                                    style={"display": "inline-block"}),                                
+                            dcc.Graph(id=key.replace(' ','_'), 
+                                    figure=fig, 
+                                    style={"display": "inline-block"}),
+                            dcc.Graph(id=key.replace(' ','_'), 
+                                    figure=fig2, 
+                                    style={"display": "inline-block"})
+                                    ]))
+                else:
+                    div_children.append(html.Div([                                                                                       
+                            dcc.Graph(id={'type': 'dynamic-graph','index' : key}, 
+                                    figure=px.bar(pd.DataFrame(res_dict[key]), x="_id", y="count", barmode="group"),
+                                    style={"display": "inline-block"})
+                                    ]))
+
         
         df_all_sums = sum_per_task(res_dict)
         date_list = list()
@@ -189,13 +198,14 @@ def calc_tsne(n_clicks=0):
         calc_tsne_clicks = n_clicks
         return 'calc t-sne, will take a long time to perform'
     else:
-        calc_tsne_clicks = n_clicks        
+        calc_tsne_clicks = n_clicks
+        analytics_client.tsne_calc('FieldData 20190604131554 1L GH010045')
         #analytics_client.tsne_calc('FieldData 20200520145736 1L GH020068')
-        analytics_client.tsne_calc('all')
+        #analytics_client.tsne_calc('all')
         return 'calc t-sne, will take a long time to perform'
 
 def main():    
-    annotations.startup()    
+    annotations.startup()
     
     #store analytics images here 
     os.makedirs(name='/tsne', mode=0o755, exist_ok=True)
