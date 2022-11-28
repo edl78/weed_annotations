@@ -198,10 +198,8 @@ def calc_tsne(n_clicks=0):
         calc_tsne_clicks = n_clicks
         return 'calc t-sne, will take a long time to perform'
     else:
-        calc_tsne_clicks = n_clicks
-        analytics_client.tsne_calc('FieldData 20190604131554 1L GH010045')
-        #analytics_client.tsne_calc('FieldData 20200520145736 1L GH020068')
-        #analytics_client.tsne_calc('all')
+        calc_tsne_clicks = n_clicks        
+        analytics_client.tsne_calc('all')
         return 'calc t-sne, will take a long time to perform'
 
 def main():    
