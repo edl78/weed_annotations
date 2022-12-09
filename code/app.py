@@ -22,7 +22,9 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div([
     html.Div(children=[
         html.Button('Update annotations', id='update-annotations', n_clicks=0),
-        html.Button('calc tsne', id='calc-tsne', n_clicks=0)
+        html.Button('calc tsne', id='calc-tsne', n_clicks=0),
+        dcc.Input(id="tsne-input-str", type="text", placeholder=""),
+        html.Button('calc tsne for input string', id='calc-tsne-on-input', n_clicks=0),
     ]),
     html.Div(id='container', children=[])
 ])
@@ -33,11 +35,12 @@ annotations = Annotations(username=os.environ['CVAT_USERNAME'],
                             password=os.environ['CVAT_PASSWORD'],
                             cvat_base_url=os.environ['CVAT_BASE_URL'])
 
-if(os.environ['ANALYTICS_HOST'] != None):
+if(len(os.environ['ANALYTICS_HOST']) > 0):
     analytics_client = AnalyticsClient(host=os.environ['ANALYTICS_HOST'], port=int(os.environ['ANALYTICS_PORT']))
 
 update_annotations_clicks = 0
 calc_tsne_clicks = 0
+calc_tsne_on_input_clicks = 0
 
 def sum_per_task(res_dict):
     all_names = []
@@ -124,7 +127,7 @@ def update_layout(n_clicks, div_children):
         
         for task in task_list:
             task_name = task['_id']
-            if(os.environ['ANALYTICS_HOST']):
+            if(len(os.environ['ANALYTICS_HOST']) > 0):
                 download_tsne_img(task_name)
             object_classes = stats.get_num_object_classes_filtered_on_task(str(task_name))         
             res_dict[task_name] = object_classes
@@ -132,7 +135,7 @@ def update_layout(n_clicks, div_children):
         #add distribution per task
         for key in res_dict:
             if(res_dict[key] != []):
-                if(os.environ['ANALYTICS_HOST']):
+                if(len(os.environ['ANALYTICS_HOST']) > 0):
                     file_path_tsne = '/tsne/'+key.replace(' ', '_')+'/tsne_plot.png'
                     file_path_tsne_img = '/tsne/'+key.replace(' ', '_')+'/tsne_plot_imgs.png'                
                     img = read_tsne_img(file_path_tsne)
@@ -141,7 +144,7 @@ def update_layout(n_clicks, div_children):
                     fig2 = px.imshow(img2)
 
                 div_children.append(html.Div(['CVAT task name: ' + key]))
-                if(os.environ['ANALYTICS_HOST']):
+                if(len(os.environ['ANALYTICS_HOST']) > 0):
                     div_children.append(html.Div([                                                                                       
                             dcc.Graph(id={'type': 'dynamic-graph','index' : key}, 
                                     figure=px.bar(pd.DataFrame(res_dict[key]), x="_id", y="count", barmode="group"),
@@ -198,9 +201,31 @@ def calc_tsne(n_clicks=0):
         calc_tsne_clicks = n_clicks
         return 'calc t-sne, will take a long time to perform'
     else:
-        calc_tsne_clicks = n_clicks        
-        analytics_client.tsne_calc('all')
+        calc_tsne_clicks = n_clicks
+        if(len(os.environ['ANALYTICS_HOST']) > 0):        
+            analytics_client.tsne_calc('all')
+        else:
+            return "no ANALYTICS_HOST set, abort call for t-sne analysis"
         return 'calc t-sne, will take a long time to perform'
+
+
+@app.callback(
+    dash.dependencies.Output('calc-tsne-on-input', 'children'),    
+    [dash.dependencies.Input('calc-tsne-on-input', 'n_clicks'),
+     dash.dependencies.Input('tsne-input-str', 'value')])
+def calc_tsne(n_clicks=0, tsne_input_str=""):
+    global calc_tsne_on_input_clicks
+    if(n_clicks <= calc_tsne_on_input_clicks):
+        calc_tsne_on_input_clicks = n_clicks
+        return 'calc t-sne on input field task, will take a long time to perform'
+    else:
+        calc_tsne_on_input_clicks = n_clicks
+        if(len(os.environ['ANALYTICS_HOST']) > 0):
+            analytics_client.tsne_calc(tsne_input_str)
+        else:
+            return "no ANALYTICS_HOST set, abort call for t-sne analysis on task: {}".format(tsne_input_str)
+        return 'calc t-sne on task: {}, will take a long time to perform'.format(tsne_input_str)
+
 
 def main():    
     annotations.startup()
