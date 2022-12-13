@@ -6,6 +6,10 @@
 - Annotations are fed into a Mongo Database
 - MongoExpress can view the database via a browser
 - Python with Dash and Plotly takes data from MongoDB and builds statistics to show on a Dashboard
+- The dashboard on localhost:8050 has three buttons and a free text field: 
+- "update annotations" check for new annotations set to status complete in cvat and updates the mongodb with these. This produces the statistics displayed under the buttons when complete.
+- "calc t-sne, will take a long time to perform" will call the analytics service and make t-sne plots for every annotation task in the mongodb, one plot with dots and one with overlayed bbox images.
+- The free text field and the associated button "calc t-sne on input field task, will take a long time to perform" will send a request to perform t-sne on the task given in the input text field.
 
 
 
