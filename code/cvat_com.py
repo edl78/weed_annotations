@@ -145,7 +145,7 @@ class Annotations():
             post = {
                 'type': 'annotation',
                 'task_name': annotation['task_name'],
-                'shape_type': shape['type'],
+                'shape_types': shape['type'],
                 'occluded': shape['occluded'],
                 'points': shape['points'],
                 'frame': shape['frame'],
@@ -180,6 +180,7 @@ class Annotations():
     def startup(self):        
         self.login()
 
+
     def get_formats(self):
         endpoint = '/server/annotation/formats'                   
         r = requests.get(self.cvat+endpoint, cookies=self.cookies)
@@ -212,8 +213,7 @@ class Annotations():
                 with open(fullpath, 'w') as f:
                     json.dump(text, f, ensure_ascii=False)
 
-   
-        
+           
     def update(self):
         #implement semi intelligent update of annotations
         #add missing or updated annotations, in case of update
@@ -248,6 +248,7 @@ class Annotations():
                     print(task_name + ' already updated')
             print(task_name + ' all done')
 
+
 def main():    
     parser = argparse.ArgumentParser(description='CVAT commuication module, can be used for backup')
     parser.add_argument('-b', '--backup', type=bool, default=False, help='bool for backup functionality')
@@ -259,10 +260,8 @@ def main():
                             password=os.environ['CVAT_PASSWORD'],
                             cvat_base_url=os.environ['CVAT_BASE_URL'],
                             backup=args.backup)
-
     
     annotations.startup()
-
 
     if(args.backup):
         for f in args.filepath:
@@ -271,8 +270,6 @@ def main():
             fullpath = f + '/' + datestr +  '/'            
             annotations.backup(filepath=fullpath)
    
-
-    
 
 if __name__ == "__main__":
     main()

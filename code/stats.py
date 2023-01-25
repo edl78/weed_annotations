@@ -39,7 +39,7 @@ class Stats():
 
     def get_num_per_annotation_type(self):
         pipeline = [
-            {'$sortByCount': "$shape_type"}
+            {'$sortByCount': "$shape_types"}
         ]
         output = self.db.annotation_data.aggregate(pipeline)
         return list(output)
