@@ -16,14 +16,44 @@
 ![](doc_img/architecture.png)
 
 ### Build
-- Run `sh build_all.sh` to build all images required
+- Run `sh build_stats.sh` to build the required image.
 
 ### Run
-- Make a folder for mongodb to store the database in and fill in the path in the env.list file. Set full permissions on the folder.
-- Fill in your usernames and passwords in the env.list file. Do not check this in. The same goes for the .env file which is used by docker-compose.
-- Fill in all other environment variables needed.
-- Start the Analytics docker-compose if that service is desired, see the analytics repo for information. In weed_annotations env.list file: Set ANALYTICS_HOST variable to the ip of the host running the service. Leave the ANALYTICS_HOST blank if not used. That prevents the weed_annotations application from trying to communicated with the Analytics server.
+- Make a folder for mongodb to store the database and set `MONGODB_VOLUME=` your absolute path in the `.env` file (no trailing `/`). Set full permissions on the folder.
+- Fill in your usernames and passwords in the env.list file for CVAT, MongoDB and ME_CONFIG. Do not check this or the `.env` file which is used by docker-compose in to git.
+- Fill in all other environment variables needed, see examples below.
+- Start the Analytics docker-compose if that service is desired, see the analytics repo for information. In weed_annotations env.list file: Set ANALYTICS_HOST variable to the IP of the host running the service. Leave the ANALYTICS_HOST blank if not using the analytics service. That prevents the weed_annotations application from trying to communicate with the Analytics server.
 - Run `docker-compose up -d` in the weed_annotations root folder to start the application and `docker-compose down` to end.
+
+#### Example env.list
+```
+CVAT_USERNAME=autoannotation
+CVAT_PASSWORD=glassarfulltavsocker
+CVAT_BASE_URL=http://172.16.1.20:8080/api/v1/
+MONGODB_PORT_NUMBER=27017
+#MONGODB_ROOT_USER=
+MONGODB_ROOT_PASSWORD=mongobongoadminpass
+MONGODB_USERNAME=mongobongo
+MONGODB_PASSWORD=mongobongopasswd
+MONGODB_DATABASE=annotations
+ME_CONFIG_MONGODB_ADMINUSERNAME=root
+ME_CONFIG_MONGODB_ADMINPASSWORD=mongobongoadminpass
+ME_CONFIG_BASICAUTH_USERNAME=mongobongo
+ME_CONFIG_BASICAUTH_PASSWORD=mongobongopasswd
+ME_CONFIG_MONGODB_PORT=27017
+ANALYTICS_HOST=
+ANALYTICS_PORT=5001
+```
+If not using the analytics service, leave the `ANALYTICS_HOST=` empty as above. Otherwise set to e.g. `ANALYTICS_HOST=http://<IPNUMBER>`.
+
+
+#### Example .env
+```
+#set variables for docker-compose
+MONGODB_PORT_NUMBER=27017
+MONGODB_VOLUME=/home/<YOURUSERNAME>/dev/github
+STATS_PORT_NUMBER=8050
+```
 
 ### Access 
 - on localhost:8050 the statistics Dashboard can be viewed.
