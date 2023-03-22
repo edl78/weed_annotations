@@ -70,3 +70,7 @@ STATS_PORT_NUMBER=8050
 ### Sample of statistics Dashboard
 
 ![](doc_img/Dash.png)
+
+# Academic citation
+
+Please see the [main webpage](https://openweeds.linkoping-ri.se/howtocite.html) for information on how to cite.
